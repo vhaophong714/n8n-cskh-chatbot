@@ -2,10 +2,9 @@
 
 An FAQ chatbot for a securities company's customer care centre, built as a low-code **n8n** workflow. It runs a **local LLM (Ollama, `qwen2.5:1.5b`)**, answers only from an official FAQ kept in **Google Sheets**, and writes every conversation to a **Chat Log** sheet that can be analysed later in SQL or Power BI.
 
-> **Demo project.** The FAQ content is based on publicly available customer-support information of PHS Securities. This project is for learning and portfolio purposes and is not affiliated with or endorsed by PHS.
 
 <!-- Add a screenshot or GIF of the chat widget here -->
-<!-- ![Demo](docs/demo.gif) -->
+<!-- ![Demo](chatbot-cskh.png) -->
 
 ## Why this project
 
