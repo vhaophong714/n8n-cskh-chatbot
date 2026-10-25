@@ -56,25 +56,9 @@ Every turn is appended to the `Chat Log` sheet:
 | `Session ID` | Chat session identifier |
 | `Câu hỏi` | Customer question |
 | `Trả lời` | Bot answer |
-| `Trạng thái` | `Đã trả lời` (answered), `Chưa trả lời` (fallback was used) or `Chuyển môi giới` (escalated to a broker) |
+| `Trạng thái` | `Đã trả lời` (answered), `Chưa trả lời` (fallback was used)|
 | `Thời gian phản hồi (giây)` | End-to-end response time in seconds, one decimal |
 
-The status is classified automatically by checking whether the answer contains the fallback phrase.
-
-### Example analyses on the log
-
-```sql
--- Share of questions the bot could not answer, per day
-SELECT CAST([Thời gian] AS date) AS day,
-       COUNT(*) AS questions,
-       AVG(CASE WHEN [Trạng thái] = N'Chưa trả lời' THEN 1.0 ELSE 0 END) AS unanswered_rate,
-       AVG([Thời gian phản hồi (giây)]) AS avg_response_sec
-FROM chat_log
-GROUP BY CAST([Thời gian] AS date)
-ORDER BY day;
-```
-
-Questions with status `Chưa trả lời` show which topics are missing from the FAQ and should be added next.
 
 ## Tech stack
 
@@ -82,44 +66,13 @@ Questions with status `Chưa trả lời` show which topics are missing from the
 - [Ollama](https://ollama.com) with `qwen2.5:1.5b`: local LLM, no paid API
 - Google Sheets: FAQ knowledge base and Chat Log storage
 
-## Getting started
-
-### 1. Run n8n and Ollama
-
-```bash
-# Ollama
-ollama pull qwen2.5:1.5b
-
-# n8n
-docker run -it --rm --name n8n -p 5678:5678 \
-  -v n8n_data:/home/node/.n8n \
-  docker.n8n.io/n8nio/n8n
-```
-
-Open `http://localhost:5678`.
-
-### 2. Prepare the Google Sheet
-
-Create one spreadsheet with two tabs:
-
-- **`FAQ`** with columns `Chủ đề`, `Câu hỏi`, `Trả lời`
-- **`Chat Log`** with the six columns listed above
-
-### 3. Import the workflow
-
-1. In n8n, choose **Import from file** and select `workflows/chatbot-cskh.json`.
-2. Create the credentials:
-   - **Ollama**: base URL `http://host.docker.internal:11434` when n8n runs in Docker and Ollama runs on the host.
-   - **Google Sheets OAuth2**: connect your Google account.
-3. In the `tra_cuu_faq` and `Ghi Chat Log` nodes, select your spreadsheet (the file contains the placeholder `YOUR_GOOGLE_SHEET_ID`).
-4. Activate the workflow and open the chat widget URL shown in the `Bắt đầu chat` node.
 
 ## Repository structure
 
 ```
 n8n-cskh-chatbot/
 ├── workflows/
-│   └── chatbot-cskh.json   # n8n workflow (credentials removed)
+│   └── chatbot-cskh.json   
 └── README.md
 ```
 
@@ -127,18 +80,6 @@ n8n-cskh-chatbot/
 
 - A 1.5B model runs fast on a laptop but is less reliable than larger models. It can occasionally skip the FAQ tool or paraphrase imperfectly, which is why the prompt and fallback are strict.
 - The FAQ tool reads the sheet directly, so retrieval gets slower and less precise as the FAQ grows.
-- The `Chuyển môi giới` status is checked in the log, but the system prompt does not yet include an escalation rule, so it is not triggered today.
 - No formal evaluation yet. Answer accuracy has only been tested manually.
 
-## Roadmap
 
-- [ ] Build an evaluation set of questions and measure answer accuracy and fallback rate
-- [ ] Power BI dashboard on the Chat Log (volume by hour, unanswered rate, response time)
-- [ ] Replace sheet lookup with embeddings and a vector store for retrieval
-- [ ] Add the broker-escalation rule to the prompt
-- [ ] Compare local models (for example `qwen2.5:3b`, `llama3.2`) on accuracy and latency
-
-## Author
-
-**Vuong Hao Phong**: Data Science graduate, University of Information Technology, VNUHCM
-GitHub: [@vhaophong714](https://github.com/vhaophong714) · Email: phongv7104@gmail.com
