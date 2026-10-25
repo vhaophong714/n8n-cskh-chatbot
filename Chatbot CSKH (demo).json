@@ -1,0 +1,375 @@
+{
+  "name": "Chatbot CSKH (demo)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Chatbot CSKH \n**Luồng:** Khách hỏi → AI Agent tra FAQ (Google Sheets) → trả lời → ghi Chat Log\n\n**Chat Log** ghi thời gian, trạng thái, thời gian phản hồi \n\n**Stack:** n8n (Docker) · Ollama qwen2.5:1.5b chạy local · Google Sheets",
+        "height": 148,
+        "width": 732,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        880
+      ],
+      "id": "044178b5-a8e8-448d-8efa-ce913350c49e",
+      "name": "Mô tả workflow"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "66a91261-b16c-4557-98b7-79f3a6b2f15f",
+              "name": "startMs",
+              "value": "={{ $now.toMillis() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -464,
+        1072
+      ],
+      "id": "fefbff99-faeb-4b30-9896-4009c7d8afb7",
+      "name": "Ghi thời điểm bắt đầu"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Bạn là trợ lý ảo của Trung tâm Chăm sóc Khách hàng, Công ty Cổ phần Chứng khoán PHS\n# NGÔN NGỮ VÀ XƯNG HÔ\n- Luôn trả lời bằng tiếng Việt có dấu. Nếu khách viết hoàn toàn bằng tiếng Anh thì trả lời bằng tiếng Anh.\n- Tuyệt đối không dung ngôn ngữ nào khác.\n- Xưng \"em\", gọi khách là \"anh/chị\".\n# CÁCH TRẢ LỜI\n1. Chào hỏi, cảm ơn, tạm biệt: trả lời ngắn gọn, \n2. Mọi câu hỏi về các câu hỏi thường gặp, hướng dẫn sử dụng Web-Trading Chứng khoán,Hướng dẫn thay đổi thông tin tài khoản, Hướng dẫn đăng ký SMS - Nhận bản tin, Hướng dẫn chuyển tiền vào TK, Chứng khoán: LUÔN gọi công cụ tra_cuu_faq trước.\n3. Không bịa thông tin, không dùng kiến thức bên ngoài FAQ, không tự đặt ra con số, mức phí, lãi suất, thời gian xử lý hay chính sách.\n# KHI FAQ KHÔNG CÓ CÂU TRẢ LỜI\nTrả lời đúng câu sau:\n\"Dạ, hiện em chưa có thông tin cho câu hỏi này. Anh/chị vui lòng liên hệ bộ phận CSKH để nhận hỗ trợ hoặc gọi hotline 1900 25 23 58 (08:00 – 17:00, thứ Hai đến thứ Sáu) ạ.\"\n\n# PHONG CÁCH\nLịch sự, ngắn gọn dễ hiểu. Ưu tiên chính xác hơn đầy đủ.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -224,
+        1072
+      ],
+      "id": "44c95025-f10d-4852-ad5e-d202e1d13ec9",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "qwen2.5:1.5b",
+        "options": {
+          "think": false,
+          "temperature": 0.2,
+          "numCtx": 16384
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        1264
+      ],
+      "id": "2271dfc4-4f29-4054-b346-bfe6ab29c354",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "d4YrHGh1rfRPwVQY",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 8
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        -176,
+        1264
+      ],
+      "id": "1aa1c8f2-4cfb-4b1a-83a6-bd5c3af5321c",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Tra cứu bộ câu hỏi thường gặp (FAQ) chính thức của PHS. Trả về các dòng gồm Chủ đề, Câu hỏi, Trả lời. Luôn dùng công cụ này trước khi trả lời câu hỏi thường gặp, hướng dẫn,...",
+        "documentId": {
+          "__rl": true,
+          "value": "126VRlpNyotvb0qyqE3Be-2QmhUE0yEhCaVWH7IwmLMU",
+          "mode": "list",
+          "cachedResultName": "faq phs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/126VRlpNyotvb0qyqE3Be-2QmhUE0yEhCaVWH7IwmLMU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "FAQ",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        1264
+      ],
+      "id": "b890ecdc-7d48-408c-9fd4-d982314b6ef1",
+      "name": "tra_cuu_faq",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "gKMfvK7WipyxwvUz",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "126VRlpNyotvb0qyqE3Be-2QmhUE0yEhCaVWH7IwmLMU",
+          "mode": "list",
+          "cachedResultName": "faq phs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/126VRlpNyotvb0qyqE3Be-2QmhUE0yEhCaVWH7IwmLMU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Chat Log",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Thời gian": "={{ $now.toFormat('yyyy-MM-dd HH:mm:ss') }}",
+            "Session ID": "={{ $('Bắt đầu chat').first().json.sessionId }}",
+            "Câu hỏi": "={{ $('Bắt đầu chat').first().json.chatInput }}",
+            "Trả lời": "={{ $json.output }}",
+            "Trạng thái": "={{ (() => { const t = ($json.output || '').toLowerCase(); return t.includes('chưa có thông tin') ? 'Chưa trả lời' : (t.includes('chuyên viên môi giới') ? 'Chuyển môi giới' : 'Đã trả lời'); })() }}",
+            "Thời gian phản hồi (giây)": "={{ Math.round(($now.toMillis() - $('Ghi thời điểm bắt đầu').first().json.startMs) / 100) / 10 }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Thời gian",
+              "displayName": "Thời gian",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Session ID",
+              "displayName": "Session ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Câu hỏi",
+              "displayName": "Câu hỏi",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Trả lời",
+              "displayName": "Trả lời",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Trạng thái",
+              "displayName": "Trạng thái",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Thời gian phản hồi (giây)",
+              "displayName": "Thời gian phản hồi (giây)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        128,
+        1072
+      ],
+      "id": "713fc52a-36e8-469f-945a-4b39f5207161",
+      "name": "Ghi Chat Log",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "gKMfvK7WipyxwvUz",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d12594d6-847a-4d20-8d1a-37d9dbeda248",
+              "name": "output",
+              "value": "={{ $('AI Agent').first().json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        352,
+        1072
+      ],
+      "id": "32c3813b-a893-4ba7-b35a-71ccba05d1c3",
+      "name": "Trả lời khách"
+    },
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Xin chào anh/chị! Em là trợ lý ảo Chăm sóc Khách hàng PHS (bản demo).\nAnh/chị cần hỗ trợ về tài khoản, giao dịch hay chứng quyền ạ?",
+        "options": {
+          "inputPlaceholder": "Nhập câu hỏi của anh/chị...",
+          "subtitle": "Hỏi đáp tự động về tài khoản, giao dịch, chứng quyền",
+          "title": "PHS – Trợ lý CSKH (demo)"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -688,
+        1072
+      ],
+      "id": "966258d8-9c5a-445f-9383-9602b9bc71b1",
+      "name": "Bắt đầu chat",
+      "webhookId": "79317c07-ce6b-4d3f-b18e-e7dbda0f27ae"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Ghi thời điểm bắt đầu": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Ghi Chat Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ghi Chat Log": {
+      "main": [
+        [
+          {
+            "node": "Trả lời khách",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "tra_cuu_faq": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bắt đầu chat": {
+      "main": [
+        [
+          {
+            "node": "Ghi thời điểm bắt đầu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "89755758-8c4d-4566-b97b-d1ead9f3b541",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e23d57bc028d80065c40c4fb88fd6ecdb3ab46b0ab083f7bcfe9c7262cc582ff"
+  },
+  "nodeGroups": [],
+  "id": "coawyZTlUbxyPlbp",
+  "tags": []
+}
