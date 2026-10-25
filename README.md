@@ -4,7 +4,7 @@ An FAQ chatbot for a securities company's customer care centre, built as a low-c
 
 
 <!-- Add a screenshot or GIF of the chat widget here -->
-<!-- ![Demo](chatbot-cskh.png) -->
+![chatbot-cskh](chatbot-cskh.png)
 
 ## Why this project
 
